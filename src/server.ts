@@ -1,6 +1,9 @@
+
 import express from 'express';
 import bodyParser from 'body-parser';
 import {filterImageFromURL, deleteLocalFiles} from './util/util';
+import { notEqual } from 'assert';
+
 
 (async () => {
 
@@ -30,6 +33,28 @@ import {filterImageFromURL, deleteLocalFiles} from './util/util';
   /**************************************************************************** */
 
   //! END @TODO1
+
+  app.get("/filteredimage", async (req, res) => {
+      
+      //extract the image_url from the request query
+      // validate the image_url query, otherwise respond with a status code of 400
+
+    const { image_url } = req.query
+     if (typeof image_url !='string' || image_url?.length <1) {                
+       return res.status(400).send("the image_url query paramater can not be found")              
+  }
+    try {
+         let imageRepo = await filterImageFromURL(image_url)                                       
+       return res.sendFile(imageRepo, async () => {
+          await deleteLocalFiles([imageRepo])                                      
+       
+        })
+
+    } catch (error) { 
+      return res.status(422).send("The image_url query parameter can not processed")
+    }
+  })
+
   
   // Root Endpoint
   // Displays a simple message to the user
